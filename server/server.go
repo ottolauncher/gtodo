@@ -84,7 +84,7 @@ func (srv *TodoServer) GetTodo(ctx context.Context, req *pb.GetTodoRequest) (*pb
 }
 
 func (srv *TodoServer) BulkTodo(stream pb.TodoService_BulkTodoServer) error {
-	lCtx, cancel := context.WithTimeout(context.TODO(), 30*time.Second)
+	_, cancel := context.WithTimeout(context.TODO(), 30*time.Second)
 	defer cancel()
 
 	// receive first part of stream with required metadata
@@ -94,54 +94,29 @@ func (srv *TodoServer) BulkTodo(stream pb.TodoService_BulkTodoServer) error {
 	}
 
 	var (
-		colChan chan *pb.TodoRequest
-		errChan chan error
-		Todos   []*pb.TodoRequest
+		todos []*pb.TodoRequest
+		res   *pb.ListTodoResponse
 	)
-	waitChan := make(chan struct{})
-	go func() {
-		defer close(colChan)
-		defer close(errChan)
-		for {
-			if done := stream.Context().Err(); done != nil {
-				log.Println("deadline exceeded")
-				errChan <- status.Errorf(codes.DeadlineExceeded, "client deadline for stream exceeded")
-			}
-			select {
-			case <-lCtx.Done():
-				log.Println("server deadline exceeded")
-				errChan <- status.Error(codes.DeadlineExceeded, "server deadline for stream exceeded")
-			}
-			in, err := stream.Recv()
-			if err == io.EOF {
-				errChan <- status.Errorf(codes.OK, "Stream completed")
-				close(waitChan)
-				return
-			}
-			if err != nil {
-				errChan <- status.Errorf(codes.Canceled, "Stream cancelled")
-			} else {
-				colChan <- in
-			}
-		}
-	}()
 
-	for Todo := range colChan {
-		Todos = append(Todos, Todo)
+	for {
+		if done := stream.Context().Err(); done != nil {
+			log.Println("deadline exceeded")
+			return status.Errorf(codes.DeadlineExceeded, "client deadline for stream exceeded")
+		}
+		in, err := stream.Recv()
+		if err == io.EOF {
+			return stream.SendAndClose(res)
+		}
+		if err != nil {
+			return status.Errorf(codes.Canceled, "Stream cancelled")
+		}
+		todos = append(todos, in)
+		res, err = srv.tm.Bulk(context.TODO(), todos)
+		if err != nil {
+			return status.Errorf(codes.Internal, "ooops something went wrong: %v", err)
+		}
 	}
-	res, err := srv.tm.Bulk(context.TODO(), Todos)
-	if err != nil {
-		return status.Errorf(codes.Internal, "ooops something went wrong: %v", err)
-	}
-	var errs []error
-	for er := range errChan {
-		errs = append(errs, er)
-	}
-	if len(errs) > 0 {
-		return status.Errorf(codes.Unknown, fmt.Sprintf("%v", errs))
-	}
-	<-waitChan
-	return stream.SendAndClose(res)
+
 }
 
 func (srv *TodoServer) SearchTodo(ctx context.Context, req *pb.SearchTodoRequest) (*pb.ListTodoResponse, error) {

@@ -7,3 +7,6 @@ GRPC SERVER: 2024/07/20 23:48:31.701370 server.go:65: main: gRPC server listenin
 2024/07/20 23:50:52 INFO: [core] CPU time info is unavailable on non-linux environments.
 2024/07/20 23:52:31 server deadline exceeded
 2024/07/21 00:23:44 server deadline exceeded
+2024/07/21 00:34:22 main: received signal for shutdown:  interrupt
+2024/07/21 00:34:22 INFO: [core] [Server #2 ListenSocket #3]ListenSocket deleted
+GRPC SERVER: 2024/07/21 00:34:22.961176 server.go:76: main: Completed
