@@ -1,0 +1,73 @@
+syntax = "proto3";
+option go_package="./pb";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+
+
+service TodoService {
+	rpc CreateTodo(TodoRequest) returns (Todo) {}
+	rpc UpdateTodo(UpdateTodoRequest) returns (Todo) {}
+	rpc ListTodo(ListTodoRequest) returns (ListTodoResponse) {}
+	rpc SearchTodo(SearchTodoRequest) returns (ListTodoResponse) {}
+	rpc DeleteTodo(DeleteTodoRequest) returns (google.protobuf.Empty) {}
+	rpc BulkTodo(stream TodoRequest) returns(ListTodoResponse) {}
+	rpc GetTodo(GetTodoRequest) returns(Todo) {}
+}
+
+
+
+message TodoRequest {
+	string name=1;
+	string description=2;
+	bool done = 3;
+}
+
+message Todo {
+	string id=1;
+	string name=2;
+	string description=3;
+	bool done=4;
+  	google.protobuf.Timestamp createdAt = 5;
+  	google.protobuf.Timestamp updatedAt = 6;
+
+	
+}
+
+message UpdateTodoRequest {
+	string id=1;
+	string name=2;
+	string description=3;
+	bool done=4;
+}
+
+message ListTodoResponse {
+	repeated Todo todos = 1;
+}
+
+message ListTodoRequest {
+	google.protobuf.BytesValue filter = 1;
+	int64 limit = 2;
+	int64 page = 3;
+}
+
+message SearchTodoRequest {
+	string q = 1;
+	int64 limit = 2;
+	int64 page = 3;
+ }
+
+message DeleteTodoRequest {
+	google.protobuf.BytesValue filter = 1;
+	int64 limit = 2;
+	int64 page = 3;
+}
+
+message GetTodoRequest {
+	google.protobuf.BytesValue filter = 1;
+}
+
+
+

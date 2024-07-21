@@ -1,0 +1,12 @@
+basePath: /api/v1
+host: localhost:8082
+info:
+  contact:
+    email: nnguionza@gmail.com
+    name: Nguionza Siegfried
+    url: https://github.com/ottolauncher
+  description: Todo applications using grpc
+  title: gtodo API docs
+  version: 0.0.1
+paths: {}
+swagger: "2.0"

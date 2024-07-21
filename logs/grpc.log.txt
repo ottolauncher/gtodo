@@ -1,0 +1,9 @@
+2024/07/20 23:48:31 main: initializing gRPC server
+2024/07/20 23:48:31 listening on port :8083
+2024/07/20 23:48:31 INFO: [core] [Server #1]Server created
+2024/07/20 23:48:31 INFO: [core] [Server #2]Server created
+GRPC SERVER: 2024/07/20 23:48:31.701370 server.go:65: main: gRPC server listening on 8083
+2024/07/20 23:48:31 INFO: [core] [Server #2 ListenSocket #3]ListenSocket created
+2024/07/20 23:50:52 INFO: [core] CPU time info is unavailable on non-linux environments.
+2024/07/20 23:52:31 server deadline exceeded
+2024/07/21 00:23:44 server deadline exceeded

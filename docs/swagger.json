@@ -1,0 +1,16 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Todo applications using grpc",
+        "title": "gtodo API docs",
+        "contact": {
+            "name": "Nguionza Siegfried",
+            "url": "https://github.com/ottolauncher",
+            "email": "nnguionza@gmail.com"
+        },
+        "version": "0.0.1"
+    },
+    "host": "localhost:8082",
+    "basePath": "/api/v1",
+    "paths": {}
+}
