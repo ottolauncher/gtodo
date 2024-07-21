@@ -1,0 +1,29 @@
+{
+  "input": [
+    {
+      "name": "Code review",
+      "description": "Review new feature code",
+      "done": false
+    },
+    {
+      "name": "Make YouTube Video",
+      "description": "Start Go for beginners series",
+      "done": false
+    },
+    {
+      "name": "Go to the gym",
+      "description": "Leg day",
+      "done": false
+    },
+    {
+      "name": "Buy groceries",
+      "description": "Buy tomatoes, onions, mangoes",
+      "done": false
+    },
+    {
+      "name": "Meet with mentor",
+      "description": "Discuss blockers in my project",
+      "done": false
+    }
+  ]
+}

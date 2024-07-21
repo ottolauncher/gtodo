@@ -3,8 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/redis/go-redis/v9"
+	"google.golang.org/grpc/credentials"
 	"gtodo/config"
 	db "gtodo/db/mongo"
+	rdb "gtodo/db/redis"
 	"gtodo/models"
 	"gtodo/pb"
 	"gtodo/server"
@@ -22,6 +25,15 @@ import (
 	"google.golang.org/grpc/grpclog"
 )
 
+// unaryInterceptor
+func unaryInterceptor(
+	ctx context.Context, req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (interface{}, error) {
+	return handler(ctx, req)
+}
+
 // run is the main entry point for the gRPC server.
 // It sets up the server, initializes the necessary dependencies, and starts the server
 // to listen for incoming requests.
@@ -34,15 +46,20 @@ func runGRPC(logger *log.Logger) error {
 		return errors.Wrap(err, "reading config")
 	}
 	var (
-		client *mongo.Client
-		once   sync.Once
+		client      *mongo.Client
+		redisClient *redis.Client
+		once        sync.Once
 	)
 	once.Do(func() {
 		client = db.Connect(context.Background(), cfg)
+		redisClient = rdb.InitRedisDB(context.Background(), cfg)
 	})
 
 	port := cfg.GrpcServerPort
-
+	creds, err := credentials.NewServerTLSFromFile(cfg.CertFile, cfg.KeyFile)
+	if err != nil {
+		log.Fatalf("Failed to generate credentials %v", err)
+	}
 	log.Printf("listening on port :%s", port)
 	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
@@ -50,9 +67,13 @@ func runGRPC(logger *log.Logger) error {
 	}
 
 	tm := models.NewTodoManger(client)
-	srv := grpc.NewServer()
+	um := models.NewUserManger(client, redisClient)
+	srv := grpc.NewServer(grpc.Creds(creds), grpc.UnaryInterceptor(unaryInterceptor))
 	ctl := server.NewTodoServer(tm)
+	uctl := server.NewUserServer(um)
+
 	pb.RegisterTodoServiceServer(srv, ctl)
+	pb.RegisterUserServiceServer(srv, uctl)
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)

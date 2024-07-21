@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.4.0
 // - protoc             v5.27.2
-// source: proto/todo.proto
+// source: todo.proto
 
 package pb
 
@@ -38,7 +38,7 @@ type TodoServiceClient interface {
 	ListTodo(ctx context.Context, in *ListTodoRequest, opts ...grpc.CallOption) (*ListTodoResponse, error)
 	SearchTodo(ctx context.Context, in *SearchTodoRequest, opts ...grpc.CallOption) (*ListTodoResponse, error)
 	DeleteTodo(ctx context.Context, in *DeleteTodoRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	BulkTodo(ctx context.Context, opts ...grpc.CallOption) (TodoService_BulkTodoClient, error)
+	BulkTodo(ctx context.Context, in *BulkTodoRequest, opts ...grpc.CallOption) (*ListTodoResponse, error)
 	GetTodo(ctx context.Context, in *GetTodoRequest, opts ...grpc.CallOption) (*Todo, error)
 }
 
@@ -100,39 +100,14 @@ func (c *todoServiceClient) DeleteTodo(ctx context.Context, in *DeleteTodoReques
 	return out, nil
 }
 
-func (c *todoServiceClient) BulkTodo(ctx context.Context, opts ...grpc.CallOption) (TodoService_BulkTodoClient, error) {
+func (c *todoServiceClient) BulkTodo(ctx context.Context, in *BulkTodoRequest, opts ...grpc.CallOption) (*ListTodoResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &TodoService_ServiceDesc.Streams[0], TodoService_BulkTodo_FullMethodName, cOpts...)
+	out := new(ListTodoResponse)
+	err := c.cc.Invoke(ctx, TodoService_BulkTodo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &todoServiceBulkTodoClient{ClientStream: stream}
-	return x, nil
-}
-
-type TodoService_BulkTodoClient interface {
-	Send(*TodoRequest) error
-	CloseAndRecv() (*ListTodoResponse, error)
-	grpc.ClientStream
-}
-
-type todoServiceBulkTodoClient struct {
-	grpc.ClientStream
-}
-
-func (x *todoServiceBulkTodoClient) Send(m *TodoRequest) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *todoServiceBulkTodoClient) CloseAndRecv() (*ListTodoResponse, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(ListTodoResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 func (c *todoServiceClient) GetTodo(ctx context.Context, in *GetTodoRequest, opts ...grpc.CallOption) (*Todo, error) {
@@ -154,7 +129,7 @@ type TodoServiceServer interface {
 	ListTodo(context.Context, *ListTodoRequest) (*ListTodoResponse, error)
 	SearchTodo(context.Context, *SearchTodoRequest) (*ListTodoResponse, error)
 	DeleteTodo(context.Context, *DeleteTodoRequest) (*emptypb.Empty, error)
-	BulkTodo(TodoService_BulkTodoServer) error
+	BulkTodo(context.Context, *BulkTodoRequest) (*ListTodoResponse, error)
 	GetTodo(context.Context, *GetTodoRequest) (*Todo, error)
 	mustEmbedUnimplementedTodoServiceServer()
 }
@@ -178,8 +153,8 @@ func (UnimplementedTodoServiceServer) SearchTodo(context.Context, *SearchTodoReq
 func (UnimplementedTodoServiceServer) DeleteTodo(context.Context, *DeleteTodoRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteTodo not implemented")
 }
-func (UnimplementedTodoServiceServer) BulkTodo(TodoService_BulkTodoServer) error {
-	return status.Errorf(codes.Unimplemented, "method BulkTodo not implemented")
+func (UnimplementedTodoServiceServer) BulkTodo(context.Context, *BulkTodoRequest) (*ListTodoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BulkTodo not implemented")
 }
 func (UnimplementedTodoServiceServer) GetTodo(context.Context, *GetTodoRequest) (*Todo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTodo not implemented")
@@ -287,30 +262,22 @@ func _TodoService_DeleteTodo_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TodoService_BulkTodo_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(TodoServiceServer).BulkTodo(&todoServiceBulkTodoServer{ServerStream: stream})
-}
-
-type TodoService_BulkTodoServer interface {
-	SendAndClose(*ListTodoResponse) error
-	Recv() (*TodoRequest, error)
-	grpc.ServerStream
-}
-
-type todoServiceBulkTodoServer struct {
-	grpc.ServerStream
-}
-
-func (x *todoServiceBulkTodoServer) SendAndClose(m *ListTodoResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *todoServiceBulkTodoServer) Recv() (*TodoRequest, error) {
-	m := new(TodoRequest)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
+func _TodoService_BulkTodo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BulkTodoRequest)
+	if err := dec(in); err != nil {
 		return nil, err
 	}
-	return m, nil
+	if interceptor == nil {
+		return srv.(TodoServiceServer).BulkTodo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TodoService_BulkTodo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TodoServiceServer).BulkTodo(ctx, req.(*BulkTodoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _TodoService_GetTodo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -359,16 +326,14 @@ var TodoService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TodoService_DeleteTodo_Handler,
 		},
 		{
+			MethodName: "BulkTodo",
+			Handler:    _TodoService_BulkTodo_Handler,
+		},
+		{
 			MethodName: "GetTodo",
 			Handler:    _TodoService_GetTodo_Handler,
 		},
 	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "BulkTodo",
-			Handler:       _TodoService_BulkTodo_Handler,
-			ClientStreams: true,
-		},
-	},
-	Metadata: "proto/todo.proto",
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "todo.proto",
 }

@@ -37,6 +37,7 @@ type TodoManager struct {
 	col *mongo.Collection
 }
 
+// TodoRequest
 // swagger: model TodoRequest
 type TodoRequest struct {
 	Name        string `json:"name" bson:"name"`
@@ -44,6 +45,7 @@ type TodoRequest struct {
 	Done        bool   `json:"done" bson:"done"`
 }
 
+// UpdateTodoRequest
 // swagger: model UpdateTodoRequest
 type UpdateTodoRequest struct {
 	ID          string `json:"id,omitempty" bson:"id,omitempty"`
@@ -108,6 +110,18 @@ func TodoFromGrpcResponse(t *pb.Todo) (*Todo, error) {
 	}, nil
 }
 
+func TodoFromGrpcRequest(req *pb.TodoRequest) *Todo {
+	now := time.Now()
+	return &Todo{
+		ID:          primitive.NewObjectID(),
+		Name:        req.GetName(),
+		Description: req.GetDescription(),
+		Done:        req.GetDone(),
+		CreatedAt:   &now,
+		UpdatedAt:   &now,
+	}
+}
+
 func NewTodoFromGrpc(t *pb.TodoRequest) *Todo {
 	now := time.Now()
 	return &Todo{
@@ -137,7 +151,10 @@ func (t *TodoManager) Create(ctx context.Context, v interface{}) (*pb.Todo, erro
 
 	opts := options.CreateIndexes().SetMaxTime(10 * time.Second)
 	index := mongo.IndexModel{Keys: bson.D{{Key: "name", Value: "text"}}, Options: options.Index().SetUnique(true)}
-	t.col.Indexes().CreateOne(context.TODO(), index, opts)
+	_, err := t.col.Indexes().CreateOne(context.TODO(), index, opts)
+	if err != nil {
+		return nil, err
+	}
 
 	switch x := v.(type) {
 	case *pb.TodoRequest:
@@ -155,61 +172,69 @@ func (t *TodoManager) Create(ctx context.Context, v interface{}) (*pb.Todo, erro
 	}
 }
 
-func (t *TodoManager) Bulk(ctx context.Context, v interface{}) (*pb.ListTodoResponse, error) {
-	_, cancel := context.WithTimeout(ctx, 6*time.Second)
+func (t *TodoManager) Bulk(ctx context.Context, req *pb.BulkTodoRequest) (*pb.ListTodoResponse, error) {
+	_, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	switch x := v.(type) {
-	case []*pb.TodoRequest:
-		chanOwner := func() <-chan *Todo {
-			ch := make(chan *Todo, len(x))
-			go func() {
-				defer close(ch)
-				if len(x) > 0 {
-					for _, todo := range x {
-						ch <- NewTodoFromGrpc(todo)
-					}
-				} else {
-					return
-				}
-			}()
-			return ch
-		}
-		consumer := func(results <-chan *Todo) (*pb.ListTodoResponse, error) {
-			var collector []interface{}
+	var collector []mongo.WriteModel
+	chanOwner := func() (chan *Todo, chan error) {
+		errs := make(chan error)
+		outTodo := make(chan *Todo, len(req.Input))
 
-			for result := range results {
-				collector = append(collector, result)
+		go func() {
+			defer close(errs)
+			defer close(outTodo)
+			for _, t := range req.Input {
+				todo := TodoFromGrpcRequest(t)
+				outTodo <- todo
+				collector = append(collector,
+					mongo.NewInsertOneModel().SetDocument(todo))
 			}
-			insert, err := t.col.InsertMany(context.TODO(), collector)
+			opts := options.BulkWrite().SetOrdered(false)
+			_, err := t.col.BulkWrite(context.TODO(), collector, opts)
 			if err != nil {
-				return nil, errors.Wrap(err, "when inserting bulk data")
+				errs <- errors.Wrap(err, "when inserting bulk data")
 			}
-			var localTodos []*Todo
-			cursor, err := t.col.Find(context.TODO(), bson.M{"_id": bson.M{"$in": insert.InsertedIDs}})
-			if err != nil {
-				return nil, err
-			}
-
-			defer cursor.Close(context.TODO())
-			if err := cursor.Decode(&localTodos); err != nil {
-				return nil, err
-			}
-			return newTodoListResponse(localTodos), nil
-		}
-		results := chanOwner()
-		return consumer(results)
-
-	default:
-		return nil, fmt.Errorf("unsupported type %v: ", x)
+		}()
+		return outTodo, errs
 	}
+
+	consumer := func(results chan *Todo, errs chan error) (*pb.ListTodoResponse, error) {
+		var (
+			aggregator []*pb.Todo
+			outErr     []error
+		)
+		for result := range results {
+			aggregator = append(aggregator, TodoToGrpc(result))
+		}
+		for e := range errs {
+			outErr = append(outErr, e)
+		}
+		if len(outErr) > 0 {
+			return nil, fmt.Errorf("%v", outErr)
+		}
+		return &pb.ListTodoResponse{Todos: aggregator}, nil
+	}
+	results, errs := chanOwner()
+	return consumer(results, errs)
+
 }
 
-func newTodoListResponse(todos []*Todo) *pb.ListTodoResponse {
+func NewTodoListResponse(todos []*Todo) *pb.ListTodoResponse {
 	var res *pb.ListTodoResponse
 	go func() {
 		for _, t := range todos {
 			res.Todos = append(res.Todos, TodoToGrpc(t))
+		}
+	}()
+	return res
+}
+
+func NewTodoListResponseFromGrpcSlice(todos []*pb.Todo) *pb.ListTodoResponse {
+	var res *pb.ListTodoResponse
+	go func() {
+		for _, t := range todos {
+			res.Todos = append(res.Todos, t)
 		}
 	}()
 	return res
@@ -326,7 +351,7 @@ func (t *TodoManager) All(ctx context.Context, args *wrapperspb.BytesValue, limi
 	if len(todos) == 0 {
 		return &pb.ListTodoResponse{}, nil
 	}
-	return newTodoListResponse(todos), nil
+	return NewTodoListResponse(todos), nil
 }
 
 func (t *TodoManager) Search(ctx context.Context, q string, limit, page int64) (*pb.ListTodoResponse, error) {
@@ -360,5 +385,5 @@ func (t *TodoManager) Search(ctx context.Context, q string, limit, page int64) (
 	if len(todos) == 0 {
 		return &pb.ListTodoResponse{}, nil
 	}
-	return newTodoListResponse(todos), nil
+	return NewTodoListResponse(todos), nil
 }

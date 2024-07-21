@@ -1,0 +1,164 @@
+syntax = "proto3";
+option go_package = "./pb";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "buf/validate/validate.proto";
+
+
+
+service UserService {
+  rpc CreateUser(UserRequest) returns (User) {}
+  rpc CreateSuperUser(SuperUserRequest) returns (User) {}
+  rpc UpdateUser(UpdateUserRequest) returns (User) {}
+  rpc Login(LoginRequest) returns (LoginResponse) {}
+  rpc Logout(LogoutRequest) returns(google.protobuf.Empty){}
+  rpc ListUser(ListUserRequest) returns (ListUserResponse) {}
+  rpc SearchUser(SearchUserRequest) returns (ListUserResponse) {}
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {}
+  rpc BulkUser(BulkUserRequest) returns(ListUserResponse) {}
+  rpc GetUser(GetUserRequest) returns(User) {}
+}
+
+
+
+message LoginRequest {
+  string username = 1  [(buf.validate.field)={required:true}];
+  string password = 2 [(buf.validate.field)={required:true}];
+}
+
+message LoginResponse {
+  string accessToken = 1;
+  string refreshToken = 2;
+}
+
+message LogoutRequest {
+  string accessToken = 1;
+}
+
+message UserRequest {
+  string username = 1 [(buf.validate.field).bytes.pattern="^[\\w.@+-]+\\Z"];
+  string email = 2 [(buf.validate.field).string.email = true];
+  string password1 = 3 [(buf.validate.field).bytes.pattern="^[A-Za-z0-9@$!_-%*#?&]{8,}$"];
+  string password2 = 4 [(buf.validate.field).bytes.pattern="^[A-Za-z0-9@$!_-%*#?&]{8,}$"];
+  repeated string phones = 5;
+  oneof gender {
+    option (buf.validate.oneof).required = true;
+    string male = 6;
+    string female = 7;
+  }
+  string fullName = 8;
+  string address = 9;
+  oneof role {
+    option (buf.validate.oneof).required = true;
+    string admin = 10;
+    string user = 11;
+    string seller = 12;
+  }
+}
+
+message SuperUserRequest {
+  string username = 1 [(buf.validate.field).bytes.pattern="^[\\w.@+-]+\\Z"];
+  string email = 2 [(buf.validate.field).string.email = true];
+  string password1 = 3 [(buf.validate.field).bytes.pattern="^[A-Za-z0-9@$!_-%*#?&]{8,}$"];
+  string password2 = 4 [(buf.validate.field).bytes.pattern="^[A-Za-z0-9@$!_-%*#?&]{8,}$"];
+  repeated string phones = 5;
+  oneof gender {
+    option (buf.validate.oneof).required = true;
+    string male = 6;
+    string female = 7;
+  }
+  bool isStaff = 8;
+  bool isAdmin = 9;
+  string fullName = 10;
+  string address = 11;
+  oneof role {
+    option (buf.validate.oneof).required = true;
+    string admin = 12;
+    string user = 13;
+    string seller = 14;
+  }
+}
+
+message User {
+  string id = 1;
+  string username = 2 [(buf.validate.field).bytes.pattern="^[\\w.@+-]+\\Z"];
+  string email = 3 [(buf.validate.field).string.email = true];
+  string password = 4 [(buf.validate.field).bytes.pattern="^[A-Za-z0-9@$!_-%*#?&]{8,}$"];
+  repeated string phones = 5;
+  oneof gender {
+    option (buf.validate.oneof).required = true;
+    string male = 6;
+    string female = 7;
+  }
+  bool isStaff = 8;
+  bool isAdmin = 9;
+  string fullName = 10;
+  string address = 11;
+  google.protobuf.Timestamp dateJoined = 12;
+  google.protobuf.Timestamp lastLogin = 13;
+  oneof role {
+    option (buf.validate.oneof).required = true;
+    string admin = 14;
+    string user = 15;
+    string seller = 16;
+  }
+}
+
+message BulkUserRequest {
+  repeated UserRequest input = 1;
+}
+
+message UpdateUserRequest {
+  string id = 1;
+  string email = 3 [(buf.validate.field).string.email = true];
+  string oldPassword = 4 [(buf.validate.field).bytes.pattern="^[A-Za-z0-9@$!_-%*#?&]{8,}$"];
+  string newPassword = 14 [(buf.validate.field).bytes.pattern="^[A-Za-z0-9@$!_-%*#?&]{8,}$"];
+  repeated string phones = 5;
+  oneof gender {
+    string male = 6;
+    string female = 7;
+  }
+  bool isStaff = 8;
+  bool isAdmin = 9;
+  string fullName = 10;
+  string address = 11;
+  google.protobuf.Timestamp dateJoined = 12;
+  google.protobuf.Timestamp lastLogin = 13;
+  oneof role {
+    option (buf.validate.oneof).required = true;
+    string admin = 15;
+    string user = 16;
+    string seller = 17;
+  }
+}
+
+message ListUserResponse {
+  repeated User Users = 1;
+}
+
+message ListUserRequest {
+  google.protobuf.BytesValue filter = 1;
+  int64 limit = 2;
+  int64 page = 3;
+}
+
+message SearchUserRequest {
+  string q = 1;
+  int64 limit = 2;
+  int64 page = 3;
+}
+
+message DeleteUserRequest {
+  google.protobuf.BytesValue filter = 1;
+  int64 limit = 2;
+  int64 page = 3;
+}
+
+message GetUserRequest {
+  google.protobuf.BytesValue filter = 1;
+}
+
+
+

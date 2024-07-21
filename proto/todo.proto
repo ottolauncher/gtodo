@@ -13,7 +13,7 @@ service TodoService {
 	rpc ListTodo(ListTodoRequest) returns (ListTodoResponse) {}
 	rpc SearchTodo(SearchTodoRequest) returns (ListTodoResponse) {}
 	rpc DeleteTodo(DeleteTodoRequest) returns (google.protobuf.Empty) {}
-	rpc BulkTodo(stream TodoRequest) returns(ListTodoResponse) {}
+	rpc BulkTodo(BulkTodoRequest) returns(ListTodoResponse) {}
 	rpc GetTodo(GetTodoRequest) returns(Todo) {}
 }
 
@@ -32,8 +32,10 @@ message Todo {
 	bool done=4;
   	google.protobuf.Timestamp createdAt = 5;
   	google.protobuf.Timestamp updatedAt = 6;
+}
 
-	
+message BulkTodoRequest {
+	repeated TodoRequest input = 1;
 }
 
 message UpdateTodoRequest {

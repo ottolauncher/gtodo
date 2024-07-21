@@ -1,12 +1,92 @@
-2024/07/20 23:48:31 main: initializing gRPC server
-2024/07/20 23:48:31 listening on port :8083
-2024/07/20 23:48:31 INFO: [core] [Server #1]Server created
-2024/07/20 23:48:31 INFO: [core] [Server #2]Server created
-GRPC SERVER: 2024/07/20 23:48:31.701370 server.go:65: main: gRPC server listening on 8083
-2024/07/20 23:48:31 INFO: [core] [Server #2 ListenSocket #3]ListenSocket created
-2024/07/20 23:50:52 INFO: [core] CPU time info is unavailable on non-linux environments.
-2024/07/20 23:52:31 server deadline exceeded
-2024/07/21 00:23:44 server deadline exceeded
-2024/07/21 00:34:22 main: received signal for shutdown:  interrupt
-2024/07/21 00:34:22 INFO: [core] [Server #2 ListenSocket #3]ListenSocket deleted
-GRPC SERVER: 2024/07/21 00:34:22.961176 server.go:76: main: Completed
+2024/07/21 01:31:45 main: initializing gRPC server
+2024/07/21 01:31:45 listening on port :8083
+2024/07/21 01:31:45 INFO: [core] [Server #1]Server created
+2024/07/21 01:31:45 INFO: [core] [Server #2]Server created
+GRPC SERVER: 2024/07/21 01:31:45.294265 server.go:65: main: gRPC server listening on 8083
+2024/07/21 01:31:45 INFO: [core] [Server #2 ListenSocket #3]ListenSocket created
+2024/07/21 01:31:58 main: received signal for shutdown:  interrupt
+2024/07/21 01:31:58 INFO: [core] [Server #2 ListenSocket #3]ListenSocket deleted
+GRPC SERVER: 2024/07/21 01:31:58.398932 server.go:76: main: Completed
+2024/07/21 01:32:38 main: initializing gRPC server
+2024/07/21 01:32:38 listening on port :8083
+2024/07/21 01:32:38 INFO: [core] [Server #1]Server created
+2024/07/21 01:32:38 INFO: [core] [Server #2]Server created
+GRPC SERVER: 2024/07/21 01:32:38.190432 server.go:65: main: gRPC server listening on 8083
+2024/07/21 01:32:38 INFO: [core] [Server #2 ListenSocket #3]ListenSocket created
+2024/07/21 01:32:53 INFO: [core] CPU time info is unavailable on non-linux environments.
+2024/07/21 01:32:53 incoming:  []
+2024/07/21 01:32:53 incoming:  []
+2024/07/21 01:32:53 incoming:  []
+2024/07/21 01:32:53 incoming:  []
+2024/07/21 01:32:53 incoming:  []
+2024/07/21 01:33:07 main: received signal for shutdown:  interrupt
+2024/07/21 01:33:07 INFO: [core] [Server #2 ListenSocket #3]ListenSocket deleted
+GRPC SERVER: 2024/07/21 01:33:07.321717 server.go:76: main: Completed
+2024/07/21 02:13:46 main: initializing gRPC server
+2024/07/21 02:13:46 listening on port :8083
+2024/07/21 02:13:46 INFO: [core] [Server #1]Server created
+2024/07/21 02:13:46 INFO: [core] [Server #2]Server created
+GRPC SERVER: 2024/07/21 02:13:46.151895 server.go:65: main: gRPC server listening on 8083
+2024/07/21 02:13:46 INFO: [core] [Server #2 ListenSocket #3]ListenSocket created
+2024/07/21 02:13:58 INFO: [core] CPU time info is unavailable on non-linux environments.
+2024/07/21 02:14:04 main: received signal for shutdown:  interrupt
+2024/07/21 02:14:04 INFO: [core] [Server #2 ListenSocket #3]ListenSocket deleted
+GRPC SERVER: 2024/07/21 02:14:04.872504 server.go:76: main: Completed
+2024/07/21 02:47:48 main: initializing gRPC server
+2024/07/21 02:47:48 listening on port :8083
+2024/07/21 02:47:48 INFO: [core] [Server #1]Server created
+2024/07/21 02:47:48 INFO: [core] [Server #2]Server created
+GRPC SERVER: 2024/07/21 02:47:48.639843 server.go:65: main: gRPC server listening on 8083
+2024/07/21 02:47:48 INFO: [core] [Server #2 ListenSocket #3]ListenSocket created
+2024/07/21 02:48:07 main: received signal for shutdown:  interrupt
+2024/07/21 02:48:07 INFO: [core] [Server #2 ListenSocket #3]ListenSocket deleted
+GRPC SERVER: 2024/07/21 02:48:07.723815 server.go:76: main: Completed
+2024/07/21 02:51:34 main: initializing gRPC server
+2024/07/21 02:51:34 listening on port :8083
+2024/07/21 02:51:34 INFO: [core] [Server #1]Server created
+2024/07/21 02:51:34 INFO: [core] [Server #2]Server created
+GRPC SERVER: 2024/07/21 02:51:34.682082 server.go:65: main: gRPC server listening on 8083
+2024/07/21 02:51:34 INFO: [core] [Server #2 ListenSocket #3]ListenSocket created
+2024/07/21 02:51:57 INFO: [core] CPU time info is unavailable on non-linux environments.
+2024/07/21 02:52:43 main: received signal for shutdown:  interrupt
+2024/07/21 02:52:43 INFO: [core] [Server #2 ListenSocket #3]ListenSocket deleted
+GRPC SERVER: 2024/07/21 02:52:43.500712 server.go:76: main: Completed
+2024/07/21 02:52:51 main: initializing gRPC server
+2024/07/21 02:52:51 listening on port :8083
+2024/07/21 02:52:51 INFO: [core] [Server #1]Server created
+2024/07/21 02:52:51 INFO: [core] [Server #2]Server created
+GRPC SERVER: 2024/07/21 02:52:51.122601 server.go:65: main: gRPC server listening on 8083
+2024/07/21 02:52:51 INFO: [core] [Server #2 ListenSocket #3]ListenSocket created
+2024/07/21 02:52:59 INFO: [core] CPU time info is unavailable on non-linux environments.
+2024/07/21 02:52:59 incoming:  [name:"Code review"  description:"Review new feature code" name:"Make YouTube Video"  description:"Start Go for beginners series" name:"Go to the gym"  description:"Leg day" name:"Buy groceries"  description:"Buy tomatoes, onions, mangoes" name:"Meet with mentor"  description:"Discuss blockers in my project"]
+2024/07/21 02:53:19 main: received signal for shutdown:  interrupt
+2024/07/21 02:53:19 INFO: [core] [Server #2 ListenSocket #3]ListenSocket deleted
+GRPC SERVER: 2024/07/21 02:53:19.107364 server.go:76: main: Completed
+2024/07/21 02:53:54 main: initializing gRPC server
+2024/07/21 02:53:54 listening on port :8083
+2024/07/21 02:53:54 INFO: [core] [Server #1]Server created
+2024/07/21 02:53:54 INFO: [core] [Server #2]Server created
+GRPC SERVER: 2024/07/21 02:53:54.540509 server.go:65: main: gRPC server listening on 8083
+2024/07/21 02:53:54 INFO: [core] [Server #2 ListenSocket #3]ListenSocket created
+2024/07/21 02:54:03 INFO: [core] CPU time info is unavailable on non-linux environments.
+2024/07/21 02:54:03 collector state:  [name:"Code review" description:"Review new feature code" name:"Make YouTube Video" description:"Start Go for beginners series" name:"Go to the gym" description:"Leg day" name:"Buy groceries" description:"Buy tomatoes, onions, mangoes" name:"Meet with mentor" description:"Discuss blockers in my project"]
+2024/07/21 02:55:04 main: received signal for shutdown:  interrupt
+2024/07/21 02:55:04 INFO: [core] [Server #2 ListenSocket #3]ListenSocket deleted
+GRPC SERVER: 2024/07/21 02:55:04.006387 server.go:76: main: Completed
+2024/07/21 03:09:49 main: initializing gRPC server
+2024/07/21 03:09:49 listening on port :8083
+2024/07/21 03:09:49 INFO: [core] [Server #1]Server created
+2024/07/21 03:09:49 INFO: [core] [Server #2]Server created
+GRPC SERVER: 2024/07/21 03:09:49.294762 server.go:65: main: gRPC server listening on 8083
+2024/07/21 03:09:49 INFO: [core] [Server #2 ListenSocket #3]ListenSocket created
+2024/07/21 03:10:05 INFO: [core] CPU time info is unavailable on non-linux environments.
+2024/07/21 03:15:55 main: initializing gRPC server
+2024/07/21 03:15:55 listening on port :8083
+2024/07/21 03:15:55 INFO: [core] [Server #1]Server created
+2024/07/21 03:15:55 INFO: [core] [Server #2]Server created
+GRPC SERVER: 2024/07/21 03:15:55.268511 server.go:65: main: gRPC server listening on 8083
+2024/07/21 03:15:55 INFO: [core] [Server #2 ListenSocket #3]ListenSocket created
+2024/07/21 03:16:04 INFO: [core] CPU time info is unavailable on non-linux environments.
+2024/07/21 03:24:55 main: received signal for shutdown:  interrupt
+2024/07/21 03:24:55 INFO: [core] [Server #2 ListenSocket #3]ListenSocket deleted
+GRPC SERVER: 2024/07/21 03:24:55.572466 server.go:76: main: Completed

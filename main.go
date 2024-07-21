@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"google.golang.org/grpc/credentials"
 	"gtodo/config"
 	db "gtodo/db/mongo"
 	"gtodo/docs"
@@ -25,7 +26,6 @@ import (
 	"github.com/quangdangfit/gocommon/errors"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 // @title Gingo Todo API
@@ -54,7 +54,8 @@ func runApp() error {
 	}
 	once.Do(func() {
 		client = db.Connect(context.Background(), cfg)
-		conn, err = grpc.NewClient(cfg.GrpcServerPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		//conn, err = grpc.NewClient(cfg.GrpcServerPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err = grpc.NewClient(cfg.GrpcServerPort, grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")))
 		if err != nil {
 			log.Fatalln("cannot bind grpc server: ", err)
 		}
