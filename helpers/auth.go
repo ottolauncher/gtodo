@@ -83,7 +83,7 @@ func CreateToken(user models.User) (*TokenDetails, error) {
 	atClaims := JWTCustomClaims{
 		Authorized:  true,
 		UserID:      user.ID.String(),
-		Role:        user.Role,
+		Roles:       user.Roles,
 		RefreshUUID: nil,
 		AccessUUID:  &td.AccessUuid,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -101,7 +101,7 @@ func CreateToken(user models.User) (*TokenDetails, error) {
 	rtClaims := JWTCustomClaims{
 		Authorized:  true,
 		UserID:      user.ID.String(),
-		Role:        user.Role,
+		Roles:       user.Roles,
 		RefreshUUID: &td.RefreshUuid,
 		AccessUUID:  nil,
 		RegisteredClaims: jwt.RegisteredClaims{

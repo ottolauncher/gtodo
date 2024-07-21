@@ -16,6 +16,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -24,15 +25,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
 )
-
-// unaryInterceptor
-func unaryInterceptor(
-	ctx context.Context, req interface{},
-	info *grpc.UnaryServerInfo,
-	handler grpc.UnaryHandler,
-) (interface{}, error) {
-	return handler(ctx, req)
-}
 
 // run is the main entry point for the gRPC server.
 // It sets up the server, initializes the necessary dependencies, and starts the server
@@ -60,15 +52,27 @@ func runGRPC(logger *log.Logger) error {
 	if err != nil {
 		log.Fatalf("Failed to generate credentials %v", err)
 	}
+	roleSeq := strings.Split(cfg.Roles, " ")
+	todoServicePath := "TodoService."
 	log.Printf("listening on port :%s", port)
 	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		return errors.Wrap(err, "tcp listening")
 	}
+	roles := map[string][]string{
+		todoServicePath + "CreateTodo": {roleSeq[0]},
+		todoServicePath + "DeleteTodo": {roleSeq[0]},
+		todoServicePath + "ListTodo":   {roleSeq[0], roleSeq[1]},
+		todoServicePath + "SearchTodo": {roleSeq[0], roleSeq[1]},
+		todoServicePath + "BulkTodo":   {roleSeq[0]},
+		todoServicePath + "GetTodo":    {roleSeq[0], roleSeq[1]},
+		todoServicePath + "UpdateTodo": {roleSeq[0]},
+	}
 
 	tm := models.NewTodoManger(client)
 	um := models.NewUserManger(client, redisClient)
-	srv := grpc.NewServer(grpc.Creds(creds), grpc.UnaryInterceptor(unaryInterceptor))
+	guard := interceptor.NewInterceptor(um, roles)
+	srv := grpc.NewServer(grpc.Creds(creds), grpc.UnaryInterceptor(guard.Unary()))
 	ctl := server.NewTodoServer(tm)
 	uctl := server.NewUserServer(um)
 

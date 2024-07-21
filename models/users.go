@@ -40,7 +40,7 @@ type User struct {
 	Password   *string            `json:"password,omitempty" bson:"password"`
 	Phones     []string           `json:"phones,omitempty" bson:"phones,omitempty"`
 	Gender     string             `json:"gender,omitempty" bson:"gender,omitempty"`
-	Role       string             `json:"role" bson:"role"`
+	Roles      []string           `json:"roles" bson:"roles"`
 	IsStaff    *bool              `json:"isStaff,omitempty" bson:"isStaff,omitempty"`
 	IsAdmin    *bool              `json:"isAdmin,omitempty" bson:"isAdmin,omitempty"`
 	FullName   *string            `json:"fullName,omitempty" bson:"fullName,omitempty"`
@@ -50,32 +50,12 @@ type User struct {
 }
 
 type IUser interface {
-	SetRole(role string) error
-	GetRole() string
 	SetGender(gender string) error
 	GetGender() string
 }
 
 type UserWithRoleAndGender struct {
 	*pb.User
-}
-
-func (u *UserWithRoleAndGender) SetRole(role string) error {
-	switch role {
-	case "admin":
-		u.Role = &pb.User_Admin{Admin: "admin"}
-	case "seller":
-		u.Role = &pb.User_Seller{Seller: "seller"}
-	case "user":
-		u.Role = &pb.User_User{User: "user"}
-	default:
-		u.Role = &pb.User_User{User: "user"}
-	}
-	return nil
-}
-
-func (u *UserWithRoleAndGender) GetRole() string {
-	return u.GetRole()
 }
 
 func (u *UserWithRoleAndGender) SetGender(gender string) error {
@@ -117,6 +97,7 @@ func NewUserFromGrpcRequest(u interface{}) (*User, error) {
 		Email:      uwr.Email,
 		Password:   nil,
 		Phones:     uwr.Phones,
+		Roles:      uwr.Roles,
 		IsStaff:    nil,
 		IsAdmin:    nil,
 		FullName:   &uwr.FullName,
@@ -124,8 +105,7 @@ func NewUserFromGrpcRequest(u interface{}) (*User, error) {
 		DateJoined: &now,
 		LastLogin:  nil,
 	}
-	user.Role = uwr.GetGender()
-	user.Gender = uwr.GetRole()
+	user.Gender = uwr.GetGender()
 	return user, nil
 }
 
@@ -144,6 +124,7 @@ func UserToGrpcUser(u *User) *pb.User {
 			Email:      u.Email,
 			Password:   "-",
 			Phones:     u.Phones,
+			Roles:      u.Roles,
 			IsStaff:    *u.IsStaff,
 			IsAdmin:    *u.IsAdmin,
 			FullName:   *u.FullName,
@@ -151,6 +132,7 @@ func UserToGrpcUser(u *User) *pb.User {
 			DateJoined: timestamppb.New(*u.DateJoined),
 			LastLogin:  timestamppb.New(*u.LastLogin),
 		}
+
 		if strings.EqualFold(strings.ToLower(u.Gender), "male") {
 			user.Gender = &pb.User_Male{Male: u.Gender}
 		} else if strings.EqualFold(strings.ToLower(u.Gender), "female") {
@@ -182,6 +164,46 @@ func (u *UserManager) Logout(ctx context.Context, accessToken string) error {
 		}
 	}
 	return nil
+}
+
+func (u *UserManager) RefreshToken(ctx context.Context, refreshToken string) (*helpers.TokenDetails, error) {
+	_, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	token, err := helpers.ParseRefreshToken(refreshToken)
+	if err != nil {
+		return nil, err
+	}
+	claims, ok := token.Claims.(*helpers.JWTCustomClaims)
+	if ok && token.Valid {
+		if _, err := helpers.DeleteAuth(u.client, *claims.RefreshUUID); err != nil {
+			return nil, err
+		}
+		if err := helpers.DeleteTokens(u.client, &helpers.AccessDetails{
+			AccessUuid: claims.AccessUUID,
+			UserID:     claims.UserID,
+		}); err != nil {
+			return nil, err
+		}
+		oid, err := primitive.ObjectIDFromHex(claims.UserID)
+		if err != nil {
+			return nil, err
+		}
+		var user User
+		if err := u.col.FindOne(context.TODO(), bson.D{{"_id", oid}}).Decode(&user); err != nil {
+			return nil, err
+		}
+
+		td, err := helpers.CreateToken(user)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := helpers.CreateAuth(u.client, user.ID.String(), td); err != nil {
+			return nil, err
+		}
+	}
+	return nil, errors.New("token are invalid or expired")
+
 }
 func (u *UserManager) Login(ctx context.Context, v interface{}) (*pb.LoginResponse, error) {
 	_, cancel := context.WithTimeout(ctx, 4*time.Second)

@@ -50,12 +50,7 @@ message UserRequest {
   }
   string fullName = 8;
   string address = 9;
-  oneof role {
-    option (buf.validate.oneof).required = true;
-    string admin = 10;
-    string user = 11;
-    string seller = 12;
-  }
+  repeated string roles = 15;
 }
 
 message SuperUserRequest {
@@ -73,12 +68,7 @@ message SuperUserRequest {
   bool isAdmin = 9;
   string fullName = 10;
   string address = 11;
-  oneof role {
-    option (buf.validate.oneof).required = true;
-    string admin = 12;
-    string user = 13;
-    string seller = 14;
-  }
+  repeated string roles = 15;
 }
 
 message User {
@@ -98,12 +88,7 @@ message User {
   string address = 11;
   google.protobuf.Timestamp dateJoined = 12;
   google.protobuf.Timestamp lastLogin = 13;
-  oneof role {
-    option (buf.validate.oneof).required = true;
-    string admin = 14;
-    string user = 15;
-    string seller = 16;
-  }
+  repeated string roles = 14;
 }
 
 message BulkUserRequest {
@@ -126,12 +111,7 @@ message UpdateUserRequest {
   string address = 11;
   google.protobuf.Timestamp dateJoined = 12;
   google.protobuf.Timestamp lastLogin = 13;
-  oneof role {
-    option (buf.validate.oneof).required = true;
-    string admin = 15;
-    string user = 16;
-    string seller = 17;
-  }
+  repeated string roles = 15;
 }
 
 message ListUserResponse {

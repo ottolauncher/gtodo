@@ -28,6 +28,7 @@ type Config struct {
 	RefreshSecretKey    string `envconfig:"REFRESH_SECRET" required:"true"`
 	CertFile            string `envconfig:"CERT_FILE" required:"true"`
 	KeyFile             string `envconfig:"KEY_FILE" required:"true"`
+	Roles               string `envconfig:"ROLES" required:"true"`
 }
 
 // For ease of unit testing.

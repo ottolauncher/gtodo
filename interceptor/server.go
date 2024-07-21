@@ -1,4 +1,4 @@
-package auth
+package interceptor
 
 import (
 	"context"
@@ -18,17 +18,17 @@ type Interceptor struct {
 func accessibleRoles() map[string][]string {
 	const todoServicePath = "TodoService"
 	return map[string][]string{
-		todoServicePath + "CreateTodo": {"admin"},
-		todoServicePath + "DeleteTodo": {"admin"},
-		todoServicePath + "ListTodo":   {"admin", "user"},
-		todoServicePath + "SearchTodo": {"admin", "user"},
-		todoServicePath + "BulkTodo":   {"admin"},
-		todoServicePath + "GetTodo":    {"admin", "user"},
-		todoServicePath + "UpdateTodo": {"admin"},
+		todoServicePath + "CreateTodo": {"ADMIN"},
+		todoServicePath + "DeleteTodo": {"ADMIN"},
+		todoServicePath + "ListTodo":   {"ADMIN", "USER"},
+		todoServicePath + "SearchTodo": {"ADMIN", "USER"},
+		todoServicePath + "BulkTodo":   {"ADMIN"},
+		todoServicePath + "GetTodo":    {"ADMIN", "USER"},
+		todoServicePath + "UpdateTodo": {"ADMIN"},
 	}
 }
 
-type UnaryManager interface {
+type ServerManager interface {
 	Unary() grpc.UnaryServerInterceptor
 	Stream() grpc.StreamServerInterceptor
 	authorize(ctx context.Context, method string) error
@@ -55,8 +55,8 @@ func (u *Interceptor) authorize(ctx context.Context, method string) error {
 	}
 	claims, ok := token.Claims.(*helpers.JWTCustomClaims)
 	if ok && token.Valid {
-		for _, role := range accessibleRoles() {
-			if role == claims.Role {
+		for _, role := range roles {
+			if helpers.Subset(role, claims.Roles) {
 				return nil
 			}
 		}
@@ -64,7 +64,7 @@ func (u *Interceptor) authorize(ctx context.Context, method string) error {
 	return status.Errorf(codes.PermissionDenied, "you cannot perform that action")
 }
 
-func NewUnaryInterceptor(um *models.UserManager, roles map[string][]string) *Interceptor {
+func NewInterceptor(um *models.UserManager, roles map[string][]string) *Interceptor {
 	return &Interceptor{
 		um:    um,
 		roles: roles,
