@@ -1,4 +1,4 @@
-module gtodo
+module github.com/ottolauncher/gtodo
 
 go 1.22.4
 

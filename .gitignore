@@ -27,7 +27,8 @@ x509
 go.work
 go.work.sum
 
-.go.*
+
+go.*
 
 # env file
 .env
