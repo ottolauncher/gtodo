@@ -3,11 +3,11 @@ package db
 import (
 	"context"
 	"fmt"
+	"github.com/ottolauncher/gtodo/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"log"
-	"gtodo/config"
 )
 
 func Connect(ctx context.Context, cfg *config.Config) *mongo.Client {

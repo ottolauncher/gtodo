@@ -2,12 +2,12 @@ package interceptor
 
 import (
 	"context"
+	"github.com/ottolauncher/gtodo/helpers"
+	"github.com/ottolauncher/gtodo/models"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"gtodo/helpers"
-	"gtodo/models"
 )
 
 type Interceptor struct {

@@ -2,8 +2,8 @@ package db
 
 import (
 	"context"
+	"github.com/ottolauncher/gtodo/config"
 	"github.com/redis/go-redis/v9"
-	"gtodo/config"
 	"log"
 	"time"
 )

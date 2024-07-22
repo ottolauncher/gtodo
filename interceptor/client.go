@@ -2,9 +2,9 @@ package interceptor
 
 import (
 	"context"
+	"github.com/ottolauncher/gtodo/models"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	"gtodo/models"
 	"time"
 )
 

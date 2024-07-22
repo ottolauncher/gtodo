@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
-	"gtodo/models"
-	"gtodo/pb"
+	"github.com/ottolauncher/gtodo/models"
+	"github.com/ottolauncher/gtodo/pb"
 	"time"
 
 	"github.com/pkg/errors"

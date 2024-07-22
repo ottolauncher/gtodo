@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gtodo/config"
-	"gtodo/pb"
+	"github.com/ottolauncher/gtodo/config"
+	"github.com/ottolauncher/gtodo/pb"
 	"log"
 	"time"
 

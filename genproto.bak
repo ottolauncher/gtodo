@@ -1,7 +1,7 @@
 protoc \
     --go_out=. --go-grpc_out=. \
     -I=proto/ \
-     proto/*.proto
+     $(find proto/** -iname "*.proto")
 
 
 

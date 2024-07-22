@@ -3,12 +3,12 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/ottolauncher/gtodo/models"
+	"github.com/ottolauncher/gtodo/pb"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"gtodo/models"
-	"gtodo/pb"
 	"time"
 )
 

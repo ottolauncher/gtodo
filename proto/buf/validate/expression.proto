@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package buf.validate;
 
-option go_package = "gtodo/bufbuild/buf/validate";
+option go_package = "github.com/ottolauncher/buf-build/buf/validate";
 option java_multiple_files = true;
 option java_outer_classname = "ExpressionProto";
 option java_package = "build.buf.validate";

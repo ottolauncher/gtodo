@@ -3,10 +3,10 @@ package models
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/ottolauncher/gtodo/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"gtodo/config"
 	"log"
 	"net/http"
 	"strings"

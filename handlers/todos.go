@@ -3,8 +3,8 @@ package handlers
 import (
 	"context"
 	"encoding/base64"
-	"gtodo/models"
-	"gtodo/pb"
+	"github.com/ottolauncher/gtodo/models"
+	"github.com/ottolauncher/gtodo/pb"
 	"net/http"
 	"strconv"
 	"time"

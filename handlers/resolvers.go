@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"gtodo/pb"
+	"github.com/ottolauncher/gtodo/pb"
 )
 
 type Resolver struct {
