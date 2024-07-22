@@ -3,12 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc/credentials"
 	"gtodo/config"
 	db "gtodo/db/mongo"
+	dbr "gtodo/db/redis"
 	"gtodo/docs"
 	"gtodo/handlers"
+	"gtodo/interceptor"
 	"gtodo/middleware"
+	"gtodo/models"
 	"gtodo/pb"
 	"io"
 	"log"
@@ -40,11 +44,22 @@ import (
 // @licence.name Apache 2.0
 // @licence.url https://www.apcahe.org/licences/LICENSE-2.0.html
 
+func authMethods() map[string]bool {
+	const todoServicePath = "TodoService."
+
+	return map[string]bool{
+		todoServicePath + "ListTodo":   true,
+		todoServicePath + "SearchTodo": true,
+		todoServicePath + "GetTodo":    true,
+	}
+}
+
 func runApp() error {
 	var (
-		client *mongo.Client
-		once   sync.Once
-		conn   *grpc.ClientConn
+		client      *mongo.Client
+		redisClient *redis.Client
+		once        sync.Once
+		conn        *grpc.ClientConn
 	)
 
 	const envFilePath = ".env"
@@ -54,8 +69,18 @@ func runApp() error {
 	}
 	once.Do(func() {
 		client = db.Connect(context.Background(), cfg)
+		var methods map[string]bool
+
+		um := models.NewUserManger(client, redisClient)
+		redisClient = dbr.InitRedisDB(context.Background(), cfg)
+		guard, err := interceptor.NewAuthInterceptor(um, methods, time.Duration(cfg.RefreshTokenTimer))
 		//conn, err = grpc.NewClient(cfg.GrpcServerPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		conn, err = grpc.NewClient(cfg.GrpcServerPort, grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")))
+		conn, err = grpc.NewClient(
+			cfg.GrpcServerPort,
+			grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")),
+			grpc.WithUnaryInterceptor(guard.Unary()),
+			grpc.WithStreamInterceptor(guard.Stream()),
+		)
 		if err != nil {
 			log.Fatalln("cannot bind grpc server: ", err)
 		}
@@ -73,8 +98,10 @@ func runApp() error {
 			panic(err)
 		}
 	}()
+
+	userClient := pb.NewUserServiceClient(conn)
 	bookClient := pb.NewTodoServiceClient(conn)
-	srv := handlers.NewResolver(bookClient)
+	srv := handlers.NewResolver(bookClient, userClient)
 	//gin.SetMode(gin.DebugMode)
 	router := gin.Default()
 	docs.SwaggerInfo.BasePath = "/api/v1"
@@ -101,9 +128,9 @@ func runApp() error {
 	// @Produce json
 	// @Success 200 {string} Helloworld
 	// @Router /health-checker [get]
-
 	router.GET("/health-checker", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{"status": "success", "message": "OK"})
+		msg := "Welcome to GRPC Todo API"
+		ctx.JSON(http.StatusOK, gin.H{"status": "success", "message": msg})
 	})
 	api := router.Group("/api")
 	{
@@ -113,11 +140,30 @@ func runApp() error {
 			{
 				todos.GET("/list", srv.AllTodos)
 				todos.GET("/search", srv.SearchTodo)
-				todos.POST("/bulk", srv.BulkTodo)
-				todos.DELETE("", srv.DeleteTodo)
+				todos.POST("/bulk", models.AuthMiddleware(client), srv.BulkTodo)
+				todos.DELETE("", models.AuthMiddleware(client), srv.DeleteTodo)
 				todos.GET("", srv.GetTodo)
-				todos.PUT("", srv.UpdateTodo)
-				todos.POST("", srv.CreateTodo)
+				todos.PUT("", models.AuthMiddleware(client), srv.UpdateTodo)
+				todos.POST("", models.AuthMiddleware(client), srv.CreateTodo)
+			}
+			users := v1.Group("/users")
+			{
+				users.GET("/list", srv.AllUser)
+				users.GET("/search", srv.SearchUser)
+				users.POST("/bulk", models.AuthMiddleware(client), srv.BulkUser)
+				users.DELETE("", srv.DeleteUser)
+				users.GET("", srv.GetUser)
+				users.PUT("", models.AuthMiddleware(client), srv.UpdateUser)
+			}
+			auth := v1.Group("/auth")
+			{
+				auth.POST("/login", srv.Login)
+				auth.POST("/register", srv.CreateUser)
+				auth.POST("/logout", models.AuthMiddleware(client), srv.Logout)
+				auth.GET("/verify-email/:verificationCode", srv.VerifyEmail)
+				auth.POST("/forgot-password", srv.ForgotPassword)
+				auth.PATCH("/reset-password", srv.ResetPassword)
+				auth.POST("/change-password", srv.ChangePassword)
 			}
 		}
 	}

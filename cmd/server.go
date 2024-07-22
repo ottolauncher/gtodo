@@ -8,6 +8,7 @@ import (
 	"gtodo/config"
 	db "gtodo/db/mongo"
 	rdb "gtodo/db/redis"
+	"gtodo/interceptor"
 	"gtodo/models"
 	"gtodo/pb"
 	"gtodo/server"
@@ -72,7 +73,11 @@ func runGRPC(logger *log.Logger) error {
 	tm := models.NewTodoManger(client)
 	um := models.NewUserManger(client, redisClient)
 	guard := interceptor.NewInterceptor(um, roles)
-	srv := grpc.NewServer(grpc.Creds(creds), grpc.UnaryInterceptor(guard.Unary()))
+	srv := grpc.NewServer(
+		grpc.Creds(creds),
+		grpc.UnaryInterceptor(guard.Unary()),
+		grpc.StreamInterceptor(guard.Stream()),
+	)
 	ctl := server.NewTodoServer(tm)
 	uctl := server.NewUserServer(um)
 

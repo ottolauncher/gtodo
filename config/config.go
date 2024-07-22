@@ -9,26 +9,37 @@ import (
 
 // Config holds all the configuration needed by the application.
 type Config struct {
-	RedisDBUri          string `envconfig:"REDIS_URI" required:"true"`
-	MongodbDatabase     string `envconfig:"MONGODB_DATABASE" required:"true"`
-	MongodbHostName     string `envconfig:"MONGODB_HOST_NAME" required:"true"`
-	MongodbPort         string `envconfig:"MONGODB_PORT" required:"true"`
-	GrpcServerPort      string `envconfig:"GRPC_SERVER_PORT" required:"true"`
-	AppServerPort       string `envconfig:"APP_SERVER_PORT" required:"true"`
-	DbTodoName          string `envconfig:"DB_TODO_NAME" required:"true"`
-	DbUserName          string `envconfig:"DB_USER_NAME" required:"true"`
-	LogPath             string `envconfig:"LOG_PATH" required:"true"`
-	MongodbTestPath     string `envconfig:"MONGODB_PATH" required:"true"`
-	GinMode             string `envconfig:"GIN_MODE" required:"true"`
-	MongodbTestDatabase string `envconfig:"MONGODB_TEST_DATABASE" required:"true"`
-	MongodbTestHostName string `envconfig:"MONGODB_TEST_HOST_NAME" required:"true"`
-	MongodbTestDBPath   string `envconfig:"MONGODB_TEST_PATH" required:"true"`
-	MongodbTestPort     string `envconfig:"MONGODB_TEST_PORT" required:"true"`
-	TokenSecretKey      string `envconfig:"TOKEN_SECRET" required:"true"`
-	RefreshSecretKey    string `envconfig:"REFRESH_SECRET" required:"true"`
-	CertFile            string `envconfig:"CERT_FILE" required:"true"`
-	KeyFile             string `envconfig:"KEY_FILE" required:"true"`
-	Roles               string `envconfig:"ROLES" required:"true"`
+	RedisDBUri           string `envconfig:"REDIS_URI" required:"true"`
+	MongodbDatabase      string `envconfig:"MONGODB_DATABASE" required:"true"`
+	MongodbHostName      string `envconfig:"MONGODB_HOST_NAME" required:"true"`
+	MongodbPort          string `envconfig:"MONGODB_PORT" required:"true"`
+	GrpcServerPort       string `envconfig:"GRPC_SERVER_PORT" required:"true"`
+	AppServerPort        string `envconfig:"APP_SERVER_PORT" required:"true"`
+	DbTodoName           string `envconfig:"DB_TODO_NAME" required:"true"`
+	DbUserName           string `envconfig:"DB_USER_NAME" required:"true"`
+	LogPath              string `envconfig:"LOG_PATH" required:"true"`
+	MongodbTestPath      string `envconfig:"MONGODB_PATH" required:"true"`
+	GinMode              string `envconfig:"GIN_MODE" required:"true"`
+	MongodbTestDatabase  string `envconfig:"MONGODB_TEST_DATABASE" required:"true"`
+	MongodbTestHostName  string `envconfig:"MONGODB_TEST_HOST_NAME" required:"true"`
+	MongodbTestDBPath    string `envconfig:"MONGODB_TEST_PATH" required:"true"`
+	MongodbTestPort      string `envconfig:"MONGODB_TEST_PORT" required:"true"`
+	TokenSecretKey       string `envconfig:"TOKEN_SECRET" required:"true"`
+	RefreshSecretKey     string `envconfig:"REFRESH_SECRET" required:"true"`
+	CertFile             string `envconfig:"CERT_FILE" required:"true"`
+	KeyFile              string `envconfig:"KEY_FILE" required:"true"`
+	Roles                string `envconfig:"ROLES" required:"true"`
+	RefreshTokenTimer    int64  `envconfig:"REFRESH_TIMER" required:"true"`
+	EmailHost            string `envconfig:"EMAIL_HOST" required:"true"`
+	EmailHostUser        string `envconfig:"EMAIL_HOST_USER" required:"true"`
+	EmailHostPassword    string `envconfig:"EMAIL_HOST_PASSWORD" required:"true"`
+	EmailPort            int    `envconfig:"EMAIL_PORT" required:"true"`
+	EmailTokenExpireAt   int64  `envconfig:"RESET_PASSWORD_EMAIL_TOKEN_EXPIRES_AT" required:"true"`
+	SandBoxEmailAPI      string `envconfig:"SANDBOX_EMAIL_API" required:"true"`
+	SandBoxEmailUser     string `envconfig:"SANDBOX_EMAIL_USER" required:"true"`
+	SandBoxEmailPassword string `envconfig:"SANDBOX_EMAIL_PASSWORD" required:"true"`
+	EmailFrom            string `envconfig:"EMAIL_FROM" required:"true"`
+	ClientOrigin         string `envconfig:"CLIENT_ORIGIN" required:"true"`
 }
 
 // For ease of unit testing.

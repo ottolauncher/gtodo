@@ -1,4 +1,4 @@
-package helpers
+package models
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
-	"gtodo/models"
 	"log"
 	"os"
 	"time"
@@ -70,7 +69,7 @@ func DeleteTokens(client *redis.Client, authD *AccessDetails) error {
 	return nil
 }
 
-func CreateToken(user models.User) (*TokenDetails, error) {
+func CreateToken(user User) (*TokenDetails, error) {
 	td := &TokenDetails{}
 	td.AtExpires = time.Now().Add(time.Minute * 15)
 	td.AccessUuid = uuid.NewString()

@@ -5,15 +5,11 @@ import (
 	"encoding/base64"
 	"gtodo/models"
 	"gtodo/pb"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -44,7 +40,7 @@ func (r *Resolver) GetTodo(c *gin.Context) {
 
 	req := pb.GetTodoRequest{Filter: &wrapperspb.BytesValue{Value: filter}}
 
-	res, err := r.client.GetTodo(context.TODO(), &req)
+	res, err := r.tdc.GetTodo(context.TODO(), &req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: err.Error(), Code: ""})
 	} else {
@@ -90,7 +86,7 @@ func (r *Resolver) AllTodos(c *gin.Context) {
 		Page:   int64(page),
 	}
 
-	res, err := r.client.ListTodo(context.TODO(), req)
+	res, err := r.tdc.ListTodo(context.TODO(), req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: err.Error(), Code: ""})
 	}
@@ -135,7 +131,7 @@ func (r *Resolver) SearchTodo(c *gin.Context) {
 		Limit: int64(limit),
 		Page:  int64(page),
 	}
-	res, err := r.client.SearchTodo(context.TODO(), req)
+	res, err := r.tdc.SearchTodo(context.TODO(), req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -162,7 +158,7 @@ func (r *Resolver) CreateTodo(c *gin.Context) {
 	if err := c.ShouldBindBodyWithJSON(&newTodo); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{Message: err.Error(), Code: ""})
 	}
-	res, err := r.client.CreateTodo(context.TODO(), models.NewTodoToGrpcRequest(&newTodo))
+	res, err := r.tdc.CreateTodo(context.TODO(), models.NewTodoToGrpcRequest(&newTodo))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: err.Error(), Code: ""})
 	} else {
@@ -180,47 +176,24 @@ func (r *Resolver) CreateTodo(c *gin.Context) {
 // @Success 201 {object} models.DefaultResponse
 // @Router /todos/bulk [post]
 func (r *Resolver) BulkTodo(c *gin.Context) {
-	lCtx, cancel := context.WithTimeout(context.TODO(), 30*time.Second)
+	lCtx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
 
 	var (
 		bulkReq []*models.TodoRequest
 	)
-	errChan := make(chan error, 1)
 	if err := c.ShouldBindBodyWithJSON(&bulkReq); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{Message: err.Error(), Code: ""})
+		return
 	}
-	stream, err := r.client.BulkTodo(lCtx)
+	res, err := r.tdc.BulkTodo(lCtx, models.ToTodoBulkRequest(bulkReq))
 	if err != nil {
-		log.Println("on response from grpc server call: ", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: err.Error(), Code: ""})
+		return
 	} else {
-		go func() {
-			defer close(errChan)
-			for _, b := range bulkReq {
-				if err := stream.Send(models.NewTodoToGrpcRequest(b)); err != nil {
-					errChan <- errors.Wrapf(err, "%v.Send(%v) = %v: ", stream, b, err)
-				}
-			}
-
-			if done := stream.Context().Err(); done != nil {
-				log.Println("client deadline exceeded")
-				errChan <- status.Error(codes.DeadlineExceeded, "client deadline for stream exceeded")
-			}
-		}()
+		c.AbortWithStatusJSON(http.StatusCreated, gin.H{"data": res})
+		return
 	}
-
-	var errs []error
-	for e := range errChan {
-		errs = append(errs, e)
-	}
-	if len(errs) > 0 {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": errs})
-	}
-	if err := stream.CloseSend(); err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: err.Error(), Code: ""})
-	}
-
 }
 
 // UpdateTodo update todo
@@ -239,7 +212,7 @@ func (r *Resolver) UpdateTodo(c *gin.Context) {
 	if err := c.ShouldBindBodyWithJSON(&update); err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: err.Error(), Code: ""})
 	}
-	res, err := r.client.UpdateTodo(context.TODO(), models.UpdateTodoToGrpcRequest(&update))
+	res, err := r.tdc.UpdateTodo(context.TODO(), models.UpdateTodoToGrpcRequest(&update))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: err.Error(), Code: ""})
 	} else {
@@ -264,7 +237,7 @@ func (r *Resolver) DeleteTodo(c *gin.Context) {
 
 	var filter []byte
 	base64.StdEncoding.Encode(filter, []byte(args))
-	_, err := r.client.DeleteTodo(context.TODO(),
+	_, err := r.tdc.DeleteTodo(context.TODO(),
 		&pb.DeleteTodoRequest{Filter: &wrapperspb.BytesValue{Value: filter}})
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: err.Error(), Code: ""})

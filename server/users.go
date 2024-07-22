@@ -29,11 +29,81 @@ func NewUserServer(um *models.UserManager) *UserServer {
 	reflection.Register(newServer)
 	return runner
 }
+func (u *UserServer) ChangePassword(ctx context.Context, req *pb.ChangePasswordRequest) (*emptypb.Empty, error) {
+	_, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+	if req.OldPassword == "" && req.NewPassword == "" && req.ConfirmNewPassword == "" {
+		return nil, fmt.Errorf("all the passwords fields must be provided")
+	}
+	if req.OldPassword == req.NewPassword {
+		return nil, fmt.Errorf("your old password are too similar to the new one")
+	}
+	if req.NewPassword != req.ConfirmNewPassword {
+		return nil, fmt.Errorf("both new and confirm password must match")
+	}
+	if err := u.um.ChangePassword(context.TODO(), &pb.ChangePasswordRequest{
+		OldPassword:        req.OldPassword,
+		NewPassword:        req.NewPassword,
+		ConfirmNewPassword: req.ConfirmNewPassword,
+		Email:              req.Email,
+	}); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (u *UserServer) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordRequest) (*emptypb.Empty, error) {
+	_, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	if err := u.um.ForgotPassword(context.TODO(),
+		&pb.ForgotPasswordRequest{Email: req.GetEmail()}); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+func (u *UserServer) ResetPassword(ctx context.Context, req *pb.ResetPasswordRequest) (*emptypb.Empty, error) {
+	_, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+	if req.GetPassword1() != req.GetPassword2() {
+		return nil, fmt.Errorf("password miss match")
+	}
+	if err := u.um.ResetPassword(context.TODO(),
+		&pb.ResetPasswordRequest{
+			ResetToken: req.ResetToken,
+			Password1:  req.GetPassword1(),
+			Password2:  req.GetPassword2(),
+		}); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (u *UserServer) VerifyEmail(ctx context.Context, req *pb.VerifyEmailRequest) (*emptypb.Empty, error) {
+	_, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+	if err := u.um.VerifyEmail(context.TODO(), req.GetCode()); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+func (u *UserServer) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.LoginResponse, error) {
+	lctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+	res, err := u.um.RefreshToken(lctx, req.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.LoginResponse{
+		AccessToken:  res.AccessToken,
+		RefreshToken: res.RefreshToken,
+	}, nil
+}
 
 func (u *UserServer) CreateUser(ctx context.Context, req *pb.UserRequest) (*pb.User, error) {
 	lCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	res, err := u.um.Create(lCtx, req)
+	res, err := u.um.CreateSuperUser(lCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +113,7 @@ func (u *UserServer) CreateUser(ctx context.Context, req *pb.UserRequest) (*pb.U
 func (u *UserServer) CreateSuperUser(ctx context.Context, req *pb.SuperUserRequest) (*pb.User, error) {
 	lCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	res, err := u.um.Update(lCtx, req)
+	res, err := u.um.UpdateSuperUser(lCtx, req)
 	if err != nil {
 		return nil, err
 	}

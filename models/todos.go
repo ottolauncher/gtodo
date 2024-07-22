@@ -45,6 +45,14 @@ type TodoRequest struct {
 	Done        bool   `json:"done" bson:"done"`
 }
 
+func ToTodoBulkRequest(req []*TodoRequest) *pb.BulkTodoRequest {
+	var res pb.BulkTodoRequest
+	for _, r := range req {
+		res.Input = append(res.Input, NewTodoToGrpcRequest(r))
+	}
+	return &res
+}
+
 // UpdateTodoRequest
 // swagger: model UpdateTodoRequest
 type UpdateTodoRequest struct {

@@ -5,9 +5,10 @@ import (
 )
 
 type Resolver struct {
-	client pb.TodoServiceClient
+	tdc pb.TodoServiceClient
+	uc  pb.UserServiceClient
 }
 
-func NewResolver(bck pb.TodoServiceClient) *Resolver {
-	return &Resolver{client: bck}
+func NewResolver(tdc pb.TodoServiceClient, uc pb.UserServiceClient) *Resolver {
+	return &Resolver{tdc: tdc, uc: uc}
 }

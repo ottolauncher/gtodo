@@ -1,21 +1,18 @@
-package helpers
+package models
 
 import (
 	"context"
+	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gtodo/config"
-	"gtodo/models"
 	"log"
 	"net/http"
 	"strings"
 )
 
-var (
-	userCtxKey = &contextKey{"user"}
-	cfg        *config.Config
-)
+var userCtxKey = &contextKey{"user"}
 
 type contextKey struct {
 	name string
@@ -101,40 +98,37 @@ func TokenFromQuery(req *http.Request) string {
 	return req.URL.Query().Get("jwt")
 }
 
-func AuthMiddleware(col *mongo.Collection) func(handler http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			token := TokenFromHeader(req)
+func AuthMiddleware(client *mongo.Client) gin.HandlerFunc {
+	col := client.Database(cfg.MongodbDatabase).Collection(cfg.DbUserName)
+	return func(c *gin.Context) {
+		token := TokenFromHeader(c.Request)
 
-			if len(token) == 0 {
-				http.Error(w, "Token is missing", http.StatusForbidden)
+		if len(token) == 0 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"status": "fail", "message": "You are not logged in"})
+			return
+		}
+		res, err := ParseAccessToken(token)
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"status": "fail", "message": err.Error()})
+			return
+		}
+		claims, ok := res.Claims.(*JWTCustomClaims)
+		if ok && res.Valid {
+			filter := bson.M{"_id": claims.UserID}
+			var user User
+			if err := col.FindOne(context.TODO(), filter).Decode(&user); err != nil {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": "fail", "message": "the user belonging to this token no longer exists"})
 				return
 			}
-			res, err := ParseAccessToken(token)
-
-			if err != nil {
-				log.Println("Actual Error: ", err.Error())
-				http.Error(w, "Invalid token", http.StatusForbidden)
-				return
-			}
-			claims, ok := res.Claims.(*JWTCustomClaims)
-			if ok && res.Valid {
-				filter := bson.M{"username": claims.UserID}
-				var user models.User
-				if err := col.FindOne(context.TODO(), filter).Decode(&user); err != nil {
-					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-					return
-				}
-				ctx := context.WithValue(req.Context(), userCtxKey, &user)
-				req = req.WithContext(ctx)
-				next.ServeHTTP(w, req)
-			}
-		})
+			c.Set(userCtxKey.name, user)
+			c.Next()
+		}
 	}
 }
 
 // ForContext finds the user from the context. REQUIRES Middleware to have run.
-func ForContext(ctx context.Context) *models.User {
-	raw, _ := ctx.Value(userCtxKey).(*models.User)
+func ForContext(ctx context.Context) *User {
+	raw, _ := ctx.Value(userCtxKey).(*User)
 	return raw
 }

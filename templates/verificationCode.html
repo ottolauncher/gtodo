@@ -1,0 +1,46 @@
+{{template "base" .}} {{define "content"}}
+<table role="presentation" class="main">
+  <!-- START MAIN CONTENT AREA -->
+  <tr>
+    <td class="wrapper">
+      <table role="presentation" style="border-spacing: 0; border: 0; padding: 0">
+        <tr>
+          <td>
+            <p>Hi {{ .FirstName}},</p>
+            <p>Please verify your account to be able to login</p>
+            <table
+                    role="presentation"
+                    style="border-spacing: 0; border: 0; padding: 0"
+                    class="btn btn-primary"
+            >
+              <tbody>
+              <tr>
+                <td align="left">
+                  <table
+                          role="presentation"
+                          style="border-spacing: 0; border: 0; padding: 0"
+                  >
+                    <tbody>
+                    <tr>
+                      <td>
+                        <a href="{{.URL}}" target="_blank"
+                        >Verify your account</a
+                        >
+                      </td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+            <p>Good luck! GRPC TODO Team.</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- END MAIN CONTENT AREA -->
+</table>
+{{end}}

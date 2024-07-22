@@ -14,18 +14,47 @@ service UserService {
   rpc UpdateUser(UpdateUserRequest) returns (User) {}
   rpc Login(LoginRequest) returns (LoginResponse) {}
   rpc Logout(LogoutRequest) returns(google.protobuf.Empty){}
+  rpc RefreshToken(RefreshTokenRequest) returns(LoginResponse) {}
   rpc ListUser(ListUserRequest) returns (ListUserResponse) {}
   rpc SearchUser(SearchUserRequest) returns (ListUserResponse) {}
   rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {}
   rpc BulkUser(BulkUserRequest) returns(ListUserResponse) {}
   rpc GetUser(GetUserRequest) returns(User) {}
+  rpc ChangePassword(ChangePasswordRequest) returns(google.protobuf.Empty){}
+  rpc ResetPassword(ResetPasswordRequest) returns(google.protobuf.Empty){}
+  rpc ForgotPassword(ForgotPasswordRequest) returns(google.protobuf.Empty){}
+  rpc VerifyEmail(VerifyEmailRequest) returns(google.protobuf.Empty){}
 }
 
+
+message VerifyEmailRequest {
+  string code = 1;
+}
+message ChangePasswordRequest {
+  string oldPassword = 1;
+  string newPassword = 2;
+  string confirmNewPassword = 3;
+  string email = 4;
+}
+
+message ForgotPasswordRequest {
+  string email = 1 [(buf.validate.field).string.email = true];
+}
+
+message ResetPasswordRequest {
+  string resetToken = 1;
+  string password1 = 2;
+  string password2 = 3;
+}
 
 
 message LoginRequest {
   string username = 1  [(buf.validate.field)={required:true}];
   string password = 2 [(buf.validate.field)={required:true}];
+}
+
+message RefreshTokenRequest {
+  string accessToken = 1;
 }
 
 message LoginResponse {
@@ -89,6 +118,10 @@ message User {
   google.protobuf.Timestamp dateJoined = 12;
   google.protobuf.Timestamp lastLogin = 13;
   repeated string roles = 14;
+  string verificationCode = 16;
+  bool isVerified=17;
+  string passwordResetToken=18;
+  google.protobuf.Timestamp passwordResetAt=19;
 }
 
 message BulkUserRequest {
@@ -132,8 +165,6 @@ message SearchUserRequest {
 
 message DeleteUserRequest {
   google.protobuf.BytesValue filter = 1;
-  int64 limit = 2;
-  int64 page = 3;
 }
 
 message GetUserRequest {

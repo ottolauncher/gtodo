@@ -49,11 +49,11 @@ func (u *Interceptor) authorize(ctx context.Context, method string) error {
 		return status.Errorf(codes.Unauthenticated, "authorization token is missing")
 	}
 	accessToken := values[0]
-	token, err := helpers.ParseAccessToken(accessToken)
+	token, err := models.ParseAccessToken(accessToken)
 	if err != nil {
 		return status.Errorf(codes.Unauthenticated, "access token is invalid: %v", err)
 	}
-	claims, ok := token.Claims.(*helpers.JWTCustomClaims)
+	claims, ok := token.Claims.(*models.JWTCustomClaims)
 	if ok && token.Valid {
 		for _, role := range roles {
 			if helpers.Subset(role, claims.Roles) {
